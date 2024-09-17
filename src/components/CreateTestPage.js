@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 function CreateTestPage() {
   const [testName, setTestName] = useState('');
   const [questions, setQuestions] = useState([{ question: '', options: ['', '', '', ''], correctOption: '' }]);
+  const [testCode, setTestCode] = useState('');
 
   const addQuestion = () => {
     setQuestions([...questions, { question: '', options: ['', '', '', ''], correctOption: '' }]);
@@ -28,13 +30,20 @@ function CreateTestPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    // Here we'll add the API call to create the test
-    console.log({ testName, questions });
-    // After successful creation, generate and display a test code
+    try {
+      const response = await axios.post('http://localhost:5000/api/tests/create', {
+        name: testName,
+        creator: 'User', // In a real app, this would be the logged-in user
+        questions: questions
+      });
+      setTestCode(response.data.code);
+    } catch (error) {
+      console.error('Error creating test:', error);
+    }
   };
 
   return (
-    <div className="create-test-page">
+    <div className="container create-test-page">
       <h1>Create Test</h1>
       <form onSubmit={handleSubmit}>
         <input 
@@ -75,9 +84,16 @@ function CreateTestPage() {
             </select>
           </div>
         ))}
-        <button type="button" onClick={addQuestion}>Add New Question</button>
-        <button type="submit">Create Test</button>
+        <button type="button" className="button" onClick={addQuestion}>Add New Question</button>
+        <button type="submit" className="button f-end">Create Test</button>
       </form>
+      {testCode && (
+        <div className="test-code">
+          <h2>Test Created Successfully!</h2>
+          <p>Your test code is: <strong>{testCode}</strong></p>
+          <p>Share this code with test takers.</p>
+        </div>
+      )}
     </div>
   );
 }
